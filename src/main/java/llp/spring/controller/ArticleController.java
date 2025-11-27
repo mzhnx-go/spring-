@@ -82,6 +82,36 @@ public class ArticleController {
         }
         return result;
     }
+
+    @PostMapping("/deleteById")
+    public Result deleteById(Integer id){
+        // 新增调试信息：打印接收到的参数
+        System.out.println("Entering deleteById method. Received id: " + id);
+
+        Result result=new Result();
+        try{
+            // 新增调试信息：打印即将执行删除操作
+            System.out.println("About to call articleService.deleteById with id: " + id);
+
+            articleService.deleteById(id);
+
+            // 新增调试信息：打印删除操作成功完成
+            System.out.println("articleService.deleteById succeeded for id: " + id);
+
+        }catch (Exception e){
+            result.setErrorMessage("查询文章失败!");
+            e.printStackTrace();
+
+            // 新增调试信息：打印异常信息
+            System.out.println("Exception occurred in deleteById for id: " + id + ". Error message: " + e.getMessage());
+        }
+
+        // 新增调试信息：打印即将返回的结果对象状态
+        System.out.println("Exiting deleteById method. Returning result: " + result);
+
+        return  result;
+    }
+
     @PostMapping("/postHello")
     public String hello() {
         return "hello";

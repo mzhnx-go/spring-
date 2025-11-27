@@ -106,9 +106,11 @@ public class ArticleServicelimpl implements ArticleService {
         newArticle.setTags(article.getTags());
         newArticle.setContent(article.getContent());
         newArticle.setTitle(article.getTitle());
+        newArticle.setThumbnail(article.getThumbnail());
         articleMapper.updateById(newArticle);
     }
     public void deleteById(Integer id){
+        //此处未删除评论及文统计数据
         articleMapper.deleteById(id);
     }
 
