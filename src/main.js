@@ -29,4 +29,8 @@ app.use(VueAxios, axios)
 //provide 'axios'，其它地方可以注入，从而可以使用axios
 app.provide('axios', app.config.globalProperties.axios) 
 
+import VueCropper from 'vue-cropper';
+import 'vue-cropper/dist/index.css'
+app.use(VueCropper)
+
 app.mount('#app')

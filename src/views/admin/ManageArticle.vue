@@ -1,10 +1,12 @@
 <script setup>
-import {reactive, inject} from 'vue'
-import { ElMessageBox, } from 'element-plus'
+import {reactive, inject,ref} from 'vue'
+import { ElMessageBox, ElDialog} from 'element-plus'
 import { Edit, Delete } from '@element-plus/icons-vue'
 import { useStore } from '@/stores/my'
 import {nullZeroBlank} from "@/js/tool.js"
 const store = useStore()
+const dialogVisible = ref(false) // 是否显示对话框
+let selectedArticleId
 
 const axios = inject('axios')
 let myData = reactive({
@@ -104,6 +106,28 @@ function editArticle1(articleId){
   store.page.pageParams=myData.pageParams
   editArticle()
 }
+
+
+
+function showDialog(articleId) { // 显示对话框
+  selectedArticleId = articleId
+  dialogVisible.value = true
+}
+
+function deleteArticle() { // 删除文章
+  axios({
+    method: 'post',
+    url: '/api/article/deleteById?id=' + selectedArticleId
+  }).then((response) => {
+    if (response.data.success) {
+      getAPage() // 删除成功后，刷新列表
+    } else {
+      ElMessageBox.alert(response.data.msg, '结果')
+    }
+  }).catch((error) => { // 请求失败返回的数据
+    ElMessageBox.alert("系统错误！", '结果')
+  })
+}
 </script>
 <template>
     <el-row>
@@ -127,7 +151,8 @@ function editArticle1(articleId){
               <el-button type="primary" @click="editArticle1(scope.row.id)":icon="Edit" size="small">
                 编辑
               </el-button>
-              <el-button type="danger" :icon="Delete" size="small">删除</el-button>
+              <el-button type="danger" :icon="Delete" size="small" @click="showDialog(scope.row.id)" >
+                删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -148,6 +173,17 @@ function editArticle1(articleId){
     />
   </el-col>
 </el-row>
+
+<!-- 3. 关键修复：添加删除确认对话框（之前模板里漏了，对话框根本不渲染） -->
+  <el-dialog v-model="dialogVisible" title="删除确认" width="30%" center>
+    <span>确定要删除这篇文章吗？删除后不可恢复！</span>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="deleteArticle">确定删除</el-button>
+      </span>
+    </template>
+  </el-dialog>
   </template>
 <style scoped>
 
