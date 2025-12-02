@@ -22,6 +22,23 @@ function undefine(i){
   function notNullZeroBlank( i ){
     return !nullZeroBlank( i )
   }
+
+
+function dateFormat(dateString, format) {
+  try {
+      let date = new Date(dateString) // 根据字符串生成Date对象
+      if ("yyyy-MM-dd" === format) {
+          let dateFormat = date.getFullYear() + "-";
+          dateFormat += date.getMonth() + "-";
+          dateFormat += date.getDate();
+          return dateFormat;
+      } else {
+          return "无此格式！"
+      }
+  } catch (e) {
+      return "格式转换错误！"
+  }
+}
   
   export {
     undefine,
