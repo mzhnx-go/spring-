@@ -43,5 +43,7 @@ function dateFormat(dateString, format) {
   export {
     undefine,
     nullZeroBlank,
-    notNullZeroBlank
+    notNullZeroBlank,
+    dateFormat 
+
   }
