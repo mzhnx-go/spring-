@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -57,10 +58,19 @@ public class ArticleServicelimpl implements ArticleService {
                 articleId, Math.toIntExact((pageParams.getPage() - 1) * pageParams.getRows()), Math.toIntExact(pageParams.getRows())));
         return result;
     }
+
+    // 1个用法
+    public Result getIndexData() {
+        Result result = new Result();
+        List<Article> articles = articleMapper.getAPage( 0L,  5L);
+        result.getMap().put("articles", articles);
+        return result;
+    }
+
     @SneakyThrows
     @Override
     public String upload(MultipartFile file) {
-        final File folder = new File("D:\\vue3\\image\\"); //图片位置
+        final File folder = new File("D:\\vue3\\images\\"); //图片位置
         if(!folder.exists()) {
             folder.mkdirs();
         }
@@ -117,5 +127,6 @@ public class ArticleServicelimpl implements ArticleService {
     public Article selectById(Integer id){
         return articleMapper.selectById(id);
     }
+
 
 }

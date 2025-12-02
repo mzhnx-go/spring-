@@ -36,6 +36,18 @@ public class ArticleController {
        return result;
     }
 
+    @PostMapping("/getIndexData")
+    public Result getIndexData() {
+        Result result = new Result();
+        try {
+            result = articleService.getIndexData();
+        } catch (Exception e) {
+            result.setErrorMessage("获取数据失败！");
+            e.printStackTrace();
+        }
+        return result;
+    }
+
     @PostMapping("/upload")
     public Result upLoad(MultipartFile file) {
         Result result= new Result();

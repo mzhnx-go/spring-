@@ -16,5 +16,5 @@ public interface ArticleService {
     public Result getAPageOfArticleVO(PageParams pageParams);
     public void publish(Article article);
     public Article selectById(Integer id);
-
+    public Result getIndexData();
 }
