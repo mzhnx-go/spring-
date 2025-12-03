@@ -6,8 +6,20 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 
-const app = createApp(App)
+/* import the fontawesome core */
+import { library } from '@fortawesome/fontawesome-svg-core'
+/* import font awesome icon component */
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+// 引入图标名为weibo和github的两个图标，import时，要改为（fa+首字母大写的图标名）
+/* add icons to the library */
+import { faWeibo,faGithub } from '@fortawesome/free-brands-svg-icons'
+// 将这些图标加入到library，以后vue文件可以使用这些图标
+library.add(faWeibo)
+library.add(faGithub)
 
+
+const app = createApp(App)
+app.component('font-awesome-icon', FontAwesomeIcon)
 app.use(createPinia())
 app.use(router)
 
