@@ -8,10 +8,16 @@ const size = ref(40) // el-space组件中使用的间距
 
 <template>
   <!-- 响应式设计，浏览器窗口变小时（sm），占用一行（24），m或更大窗口时，占一行的11/24 -->
-  <el-row>
+  <el-row class="article-item">
     <el-col :sm="24" :md="11">
       <!-- element-plus的图片组件 -->
-      <el-image :src="props.article.thumbnail" />
+      <div class="thumbnail-container">
+    <el-image 
+      :src="props.article.thumbnail" 
+      fit="cover" 
+      class="thumbnail-image"
+    />
+  </div>
     </el-col>
     <!-- 窗口为sm或更小时，会隐藏（0） -->
     <el-col :sm="0" :md="1"></el-col>
@@ -42,5 +48,25 @@ const size = ref(40) // el-space组件中使用的间距
   color: #0f9ae0;
   font-size:20px;
   line-height: 40px;
+}
+
+.thumbnail-container {
+  width: 100%;
+  height: 0;
+  padding-bottom: 60%; /* 保持5:3宽高比 */
+  position: relative;
+  overflow: hidden;
+}
+
+.thumbnail-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.article-item {
+  margin-bottom: 20px;
 }
 </style>
