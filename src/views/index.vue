@@ -4,19 +4,20 @@ import { reactive,inject,ref } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import ArticleHeader from "@/components/ArticleHeader.vue";
 import imageMeUrl from "@/assets/me.jpg"
-
+import ReadRanking from "@/components/ReadRanking.vue";
 
 const toArticle = inject("toArticle")
 
 const size = ref(20)
 const axios = inject('axios')
-const data=reactive({articles:[]}) // 响应式对象
+const data=reactive({articles:[],articleVOs:[]}) // 响应式对象
 
 function getIndexData(){
   axios({method: 'post', url:'/api/article/getIndexData'})
   .then((response) => { // 请求数据
     if (response.data.success) {
       data.articles=response.data.map.articles
+      data.articleVOs=response.data.map.articleVOs
     } else {
       ElMessageBox.alert(response.data.msg, '结果')
     }
@@ -41,20 +42,23 @@ getIndexData()
       <el-col :span="1"></el-col>
       <el-col :span="7">
       <fieldset align="center">
-        <lengend><h3>CrazyStone</h3></lengend>
+        <legend><h3>CrazyStone</h3></legend>
         <el-image :src="imageMeUrl"/>
         <div style="margin-top: 16px;">Java后台开发</div>
         <div style="margin-top: 16px;">
           个人博客小站,主要发布Java、Spring、Docker等相关文章
         </div>
       </fieldset>
+
       <fieldset align="center">
-        <lengend><h3>联系我</h3></lengend>
+        <legend><h3>联系我</h3></legend>
         <el-space :size="size">
           <font-awesome-icon class="icon" icon="fa-brands fa-github" size="lg" border />
           <font-awesome-icon class="icon" icon="fa-brands fa-weibo" size="lg" border />
         </el-space>
       </fieldset>
+
+      <ReadRanking :articles="data.articleVOs" />
       </el-col>
       <el-col :span="1"></el-col>
     </el-row>
