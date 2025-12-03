@@ -13,7 +13,7 @@ public interface ArticleService {
     public void update(Article article);
     public String upload(MultipartFile file)throws IOException;
     public Result getArticleAndCommentByArticleId (Integer articleId, PageParams pageParams);
-    public Result getAPageOfArticleVO(PageParams pageParams);
+    public Result getAPageOfArticleVO(PageParams pageParams,String type);
     public void publish(Article article);
     public Article selectById(Integer id);
     public Result getIndexData();

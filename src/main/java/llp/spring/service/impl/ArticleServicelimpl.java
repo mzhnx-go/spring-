@@ -35,9 +35,13 @@ public class ArticleServicelimpl implements ArticleService {
     @Autowired
     private StatisticMapper statisticMapper;
 
-    public Result getAPageOfArticleVO(PageParams pageParams) {
+    public Result getAPageOfArticleVO(PageParams pageParams,String type) {
         QueryWrapper<ArticleVO> wrapper = new QueryWrapper<>();
-        wrapper.orderBy(true, false, "t_article.id");
+
+        if("id".equals(type))
+            wrapper.orderBy(true, false, "t_article.id");
+        else if("hits".equals(type))
+            wrapper.orderBy(true, false, "t_statistic.hits");
         wrapper.apply("t_article.id = t_statistic.article_id");
         String s=wrapper.getCustomSqlSegment();
         Page<ArticleVO> page = new Page<ArticleVO>(pageParams.getPage(),pageParams.getRows());
@@ -64,6 +68,12 @@ public class ArticleServicelimpl implements ArticleService {
         Result result = new Result();
         List<Article> articles = articleMapper.getAPage( 0L,  5L);
         result.getMap().put("articles", articles);
+
+        PageParams pageParams=new PageParams();
+        pageParams.setPage(1L); // 调用本类的方法
+        pageParams.setRows(10L);
+        Result result1=getAPageOfArticleVO(pageParams,"hits");
+        result.getMap().put("articleVOs",result1.getMap().get("articleVOs"));
         return result;
     }
 
