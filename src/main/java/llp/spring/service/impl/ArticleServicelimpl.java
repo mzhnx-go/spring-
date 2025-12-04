@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.sql.Wrapper;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -73,6 +74,30 @@ public class ArticleServicelimpl implements ArticleService {
         pageParams.setPage(1L); // 调用本类的方法
         pageParams.setRows(10L);
         Result result1=getAPageOfArticleVO(pageParams,"hits");
+        result.getMap().put("articleVOs",result1.getMap().get("articleVOs"));
+        return result;
+    }
+
+    public Result getAPageOfArticle(PageParams pageParams) { //分页查询文章
+        QueryWrapper<ArticleVO> wrapper = new QueryWrapper<>();
+        wrapper.orderBy(true, false, "t_article.id");
+        Page<Article> page = new Page<Article>(pageParams.getPage(), pageParams.getRows());
+        IPage<Article> aPage = articleMapper.getAPageOfArticle(page,  wrapper);
+        Result result=new Result();
+        pageParams.setTotal(aPage.getTotal());
+        result.getMap().put("articles",aPage.getRecords());
+        result.getMap().put("pageParams",pageParams);
+        return result;
+    }
+
+    public Result getIndexData(PageParams pageParams){ //方法重载：参数不同
+        //查文分页
+        Result result=getAPageOfArticle(pageParams); //重用本类的方法，分页查询文章
+        //查出点击量排名前10的文章
+        PageParams pageParams1 = new PageParams();
+        pageParams1.setPage(1L);
+        pageParams1.setRows(10L);
+        Result result1 = getAPageOfArticleVO(pageParams1,  "hits");
         result.getMap().put("articleVOs",result1.getMap().get("articleVOs"));
         return result;
     }

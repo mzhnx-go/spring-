@@ -25,4 +25,6 @@ public interface ArticleMapper extends BaseMapper<Article>{
             @Param("size") Long size     // 返回几条数据
     );
 
+    @Select("SELECT * FROM t_article${ew.customSqlSegment}")
+    IPage< Article> getAPageOfArticle(IPage< Article> page, @Param("ew")  QueryWrapper<ArticleVO> wrapper);
 }
