@@ -1,9 +1,15 @@
 <script setup>
 // 引入tool.js中的dateFormat函数
 import { dateFormat } from "@/js/tool.js"
-import {  ref } from 'vue' // 导入vue的api
+import {  ref,inject } from 'vue' // 导入vue的api
 const props = defineProps(['article'])
 const size = ref(40) // el-space组件中使用的间距
+
+// 注入 toArticle 函数
+const toArticle = inject("toArticle", (id) => {
+  console.error("toArticle function not provided!", id)
+})
+
 </script>
 
 <template>
@@ -29,8 +35,13 @@ const size = ref(40) // el-space组件中使用的间距
         </el-space>
     </el-col></el-row> 
     <el-row align="middle"><el-col>
-        <span class="title" v-html="props.article.title"></span>
-    </el-col></el-row>
+    <span 
+      class="title" 
+      @click="toArticle(props.article.id)" 
+      style="cursor: pointer;"
+      v-html="props.article.title"
+    ></span>
+ </el-col></el-row>
     <el-row align="middle"><el-col>
         <span v-html="props.article.content.substring(0,90)"></span>
     </el-col></el-row>
@@ -48,6 +59,12 @@ const size = ref(40) // el-space组件中使用的间距
   color: #0f9ae0;
   font-size:20px;
   line-height: 40px;
+}
+
+/* 添加标题悬停效果 */
+.title:hover {
+  text-decoration: underline;
+  color: #0a7bb0; /* 深蓝色，保持视觉一致性 */
 }
 
 .thumbnail-container {

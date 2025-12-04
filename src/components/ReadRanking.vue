@@ -30,3 +30,19 @@ const rankings = computed(() => {
         </el-row>
     </div>
 </template>
+
+<style scoped>
+.divider {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+a:hover {
+    color: #10D07A;
+}
+
+.title {
+    color: black;
+    font-size: 15px;
+}
+</style>
