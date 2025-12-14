@@ -1,9 +1,11 @@
 
 <script setup>
-import { reactive, ref, inject, watch, onMounted } from 'vue'
+import { reactive, ref, inject, watch, onMounted, provide, nextTick } from 'vue' // 新增nextTick导入
 import Editor from '@tinymce/tinymce-vue'
 import { ElMessageBox } from 'element-plus'
 import { useStore } from '@/stores/my'
+import Cropper from '@/components/Cropper.vue';
+import { undefine, nullZeroBlank } from '@/js/tool';
 // 1. 先声明所有变量
 const store = useStore()
 let type = "add"
@@ -11,9 +13,97 @@ const header = ref("发布文章")
 const loading = ref(false)
 const axios = inject('axios')
 const gotoArticleManage = inject("gotoArticleManage")
+const cropper = ref(null)
 
 // 文章数据
-let article = reactive({ "title": "", "tags": "", "content": "" })
+let article = reactive({ "title": "", "tags": "", "content": "", thumbnail: "" })
+
+// 专门处理文章加载的函数
+const loadArticle = (articleId) => {
+  console.log('[调试] 尝试加载文章, articleId:', articleId, 'store.articleId:', store.articleId);
+  
+  const id = Number(articleId);
+  if (isNaN(id) || id <= 0) {
+    console.warn('[调试] 无效的 articleId:', articleId);
+    return;
+  }
+  
+  loading.value = true;
+  type = "edit";
+  header.value = "编辑文章";
+  
+
+  
+  axios({
+    method: 'post',
+    url: '/api/article/selectById',
+    params: { id: id }
+  }).then((response) => {
+    console.log('[调试] API 响应:', JSON.stringify(response.data, null, 2));
+    
+    if (response.data.success) {
+      console.log('[调试] 文章数据结构:', Object.keys(response.data.map.article || {}));
+      
+      if (!response.data.map?.article) {
+        console.error('[调试] 文章数据为空', response.data.map);
+        ElMessageBox.alert("文章数据为空，请检查后端返回", '结果');
+        return;
+      }
+      
+      const nowArticle = response.data.map.article;
+      
+      // 详细检查文章属性
+      console.log('[调试] 文章属性检查:', {
+        id: nowArticle.id,
+        title: nowArticle.title,
+        content: nowArticle.content ? `${nowArticle.content.substring(0, 50)}...` : '空内容',
+        tags: nowArticle.tags
+      });
+      
+    article.id = nowArticle.id;
+    article.title = nowArticle.title;
+    article.tags = nowArticle.tags;
+    article.content = nowArticle.content;
+    store.articleId = 0;
+
+    // 新增：编辑文章时同步缩略图到子组件
+    if (nowArticle.thumbnail && cropper.value) {
+        cropper.value.setThumbnail(nowArticle.thumbnail);
+    }
+    } else {
+      console.error('[调试] API 返回失败:', response.data.msg);
+      ElMessageBox.alert(response.data.msg || "请求成功但数据异常", '结果');
+    }
+  }).catch((error) => {
+    console.error('[严重错误] 加载文章失败详情:', {
+      message: error.message,
+      stack: error.stack,
+      response: error.response ? {
+        status: error.response.status,
+        data: error.response.data
+      } : '无响应数据',
+      request: error.request ? '存在请求对象' : '无请求对象',
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        data: error.config?.data
+      }
+    });
+    
+    let errorMsg = "未知错误";
+    if (error.response) {
+      errorMsg = `HTTP ${error.response.status} 错误: ${error.response.data?.msg || '服务器返回错误'}`;
+    } else if (error.request) {
+      errorMsg = "请求已发送但无响应，请检查网络连接";
+    } else {
+      errorMsg = `请求配置错误: ${error.message}`;
+    }
+    
+    ElMessageBox.alert(`加载失败：${errorMsg}`, '错误');
+  }).finally(() => {
+    loading.value = false;
+  });
+}
 
 const image_upload_handler = (blobInfo, progress) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
@@ -55,85 +145,7 @@ const image_upload_handler = (blobInfo, progress) => new Promise((resolve, rejec
   xhr.send(formData);
 });
 
-// 专门处理文章加载的函数
-const loadArticle = (articleId) => {
-  console.log('[调试] 尝试加载文章, articleId:', articleId, 'store.articleId:', store.articleId);
-  
-  const id = Number(articleId);
-  if (isNaN(id) || id <= 0) {
-    console.warn('[调试] 无效的 articleId:', articleId);
-    return;
-  }
-  
-  loading.value = true;
-  type = "edit";
-  header.value = "编辑文章";
-  
-  axios({
-    method: 'post',
-    url: '/api/article/selectById',
-    params: { id: id }
-  }).then((response) => {
-    console.log('[调试] API 响应:', JSON.stringify(response.data, null, 2));
-    
-    if (response.data.success) {
-      console.log('[调试] 文章数据结构:', Object.keys(response.data.map.article || {}));
-      
-      if (!response.data.map?.article) {
-        console.error('[调试] 文章数据为空', response.data.map);
-        ElMessageBox.alert("文章数据为空，请检查后端返回", '结果');
-        return;
-      }
-      
-      const nowArticle = response.data.map.article;
-      
-      // 详细检查文章属性
-      console.log('[调试] 文章属性检查:', {
-        id: nowArticle.id,
-        title: nowArticle.title,
-        content: nowArticle.content ? `${nowArticle.content.substring(0, 50)}...` : '空内容',
-        tags: nowArticle.tags
-      });
-      
-      article.id = nowArticle.id;
-      article.title = nowArticle.title;
-      article.tags = nowArticle.tags;
-      article.content = nowArticle.content;
-      store.articleId = 0;
-    } else {
-      console.error('[调试] API 返回失败:', response.data.msg);
-      ElMessageBox.alert(response.data.msg || "请求成功但数据异常", '结果');
-    }
-  }).catch((error) => {
-    console.error('[严重错误] 加载文章失败详情:', {
-      message: error.message,
-      stack: error.stack,
-      response: error.response ? {
-        status: error.response.status,
-        data: error.response.data
-      } : '无响应数据',
-      request: error.request ? '存在请求对象' : '无请求对象',
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        data: error.config?.data
-      }
-    });
-    
-    let errorMsg = "未知错误";
-    if (error.response) {
-      errorMsg = `HTTP ${error.response.status} 错误: ${error.response.data?.msg || '服务器返回错误'}`;
-    } else if (error.request) {
-      errorMsg = "请求已发送但无响应，请检查网络连接";
-    } else {
-      errorMsg = `请求配置错误: ${error.message}`;
-    }
-    
-    ElMessageBox.alert(`加载失败：${errorMsg}`, '错误');
-  }).finally(() => {
-    loading.value = false;
-  });
-}
+
 
 // 监听 store.articleId 变化
 watch(() => store.articleId, loadArticle, { immediate: true })
@@ -155,6 +167,18 @@ const init = reactive({
 
 
 function publishArticle() {
+  let thumbnail = "";
+    if (cropper.value) {
+        thumbnail = cropper.value.getThumbnail();
+    }
+    
+    // 2. 修复语法错误并优化判断条件
+    // 修正：undefine → undefined，且用typeof判断（避免undefined被覆盖的风险）
+    if (typeof thumbnail === 'undefined' || nullZeroBlank(thumbnail) || !thumbnail.startsWith('/api')) {
+        article.thumbnail = "";
+    } else {
+        article.thumbnail = thumbnail;
+    }
     axios({
         method:'post',
         url:'/api/article/publishArticle?type='+type,
@@ -163,10 +187,40 @@ function publishArticle() {
     }).then((response) => {
         //response.data代表后端服务器返回的json格式的数据
         ElMessageBox.alert(response.data, '结果')
-    })
+        if("添加成功!"==response.data){
+          clearData()
+          window.scrollTo(0,0)
+        }
+    }).catch((error) => { 
+      ElMessageBox.alert("系统错误!", '结果')
+  })
 }
 
+let isShowCropper = ref(true)
+function freshCropper() {
+    
 
+    // 隐藏 cropper 组件
+    isShowCropper.value = false;
+
+    // 修复：nexttick → nextTick（驼峰拼写）
+    nextTick(() => {
+        isShowCropper.value = true;
+    });
+}
+
+provide("freshCropper", freshCropper)
+//清空数据
+function clearData() {
+    article.title = "";
+    article.tags = "";
+    article.content = "";
+    article.thumbnail = "";
+    // 新增：判断cropper.value存在，避免空值调用报错
+    if (cropper.value) {
+        cropper.value.clearData();
+    }
+}
 
 </script>
 <template>
@@ -190,6 +244,11 @@ function publishArticle() {
     </div>
 </el-col>
 <el-row>
+  <el-col :span="24">
+    <cropper ref="cropper" v-if="isShowCropper" />
+  </el-col>
+</el-row>
+<el-row>
     <el-col :span="24">
         <div align="right">
             <el-button @click="gotoArticleManage">返回列表</el-button>
@@ -197,6 +256,7 @@ function publishArticle() {
         </div>
     </el-col>
 </el-row>
+
 </template>
 
 <style scoped>
