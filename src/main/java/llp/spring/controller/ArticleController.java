@@ -101,6 +101,10 @@ public class ArticleController {
     @RequestMapping("/publishArticle")
     public String publishArticle(String type, @RequestBody Article article) {
         try{
+            if(article.getThumbnail()==null || !article.getThumbnail().startsWith("/api")){
+                article.setThumbnail("/api/images/6.png");
+            }
+
             if("add".equals(type))
             articleService.publish(article);
             else if("edit".equals(type))

@@ -100,7 +100,7 @@ public class ArticleServicelimpl implements ArticleService {
                if(content.length()>100)
                    content=content.substring(0,99)+"......";
 
-                System.out.println(content);
+
                article.setContent(content);
             }
         }
