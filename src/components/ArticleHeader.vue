@@ -43,7 +43,7 @@ const toArticle = inject("toArticle", (id) => {
     ></span>
  </el-col></el-row>
     <el-row align="middle"><el-col>
-        <span v-html="props.article.content.substring(0,90)"></span>
+        <span v-html="props.article.content"></span>
     </el-col></el-row>
     <!-- javascript字符串的求子串的方法 -->
 </el-col>

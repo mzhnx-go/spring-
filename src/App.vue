@@ -7,9 +7,13 @@ router.push({name: 'home'})
 const toAdminMain = () => {
   router.push( { name: 'adminMain'})
 }
-function toArticle(){
-  router.push({name: 'articleAndComment', params: {articleId: 13}})
+function toArticle(articleId) {
+  router.push({ 
+    name: 'articleAndComment', 
+    params: { articleId: articleId } 
+  })
 }
+
 provide("toAdminMain", toAdminMain)
 provide("toArticle", toArticle)
 </script>
