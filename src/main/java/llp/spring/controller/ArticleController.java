@@ -2,6 +2,7 @@ package llp.spring.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import llp.spring.entity.Article;
 import llp.spring.service.ArticleService;
+import llp.spring.tools.ArticleSearch;
 import llp.spring.tools.PageParams;
 import llp.spring.tools.Result;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,18 @@ import org.springframework.web.multipart.MultipartFile;
 public class ArticleController {
     @Autowired
     private ArticleService articleService;
+
+    @PostMapping("/articleSearch")
+    public Result articleSearch(@RequestBody ArticleSearch articleSearch) {
+        Result result=new Result();
+        try{
+            result=articleService.articleSearch(articleSearch);
+        }catch (Exception e){
+            result.setErrorMessage("获取数据失败！");
+            e.printStackTrace();
+        }
+        return result;
+    }
 
     @PostMapping("/getAPageOfArticleVO")
     public Result getAPageOfArticleVO(@RequestBody PageParams pageParams) {

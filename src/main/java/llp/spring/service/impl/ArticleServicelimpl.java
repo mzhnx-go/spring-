@@ -9,6 +9,7 @@ import llp.spring.entity.Article;
 import llp.spring.mapper.CommentMapper;
 import llp.spring.mapper.StatisticMapper;
 import llp.spring.service.ArticleService;
+import llp.spring.tools.ArticleSearch;
 import llp.spring.tools.PageParams;
 import llp.spring.tools.Result;
 import lombok.SneakyThrows;
@@ -99,6 +100,33 @@ public class ArticleServicelimpl implements ArticleService {
         pageParams1.setRows(10L);
         Result result1 = getAPageOfArticleVO(pageParams1,  "hits");
         result.getMap().put("articleVOs",result1.getMap().get("articleVOs"));
+        return result;
+    }
+
+    public Result articleSearch(ArticleSearch articleSearch){
+        QueryWrapper<ArticleVO> wrapper = new QueryWrapper<>();
+        wrapper.orderBy(true,  false, "id");
+
+        // 设置查询条件: 条件成立，才对title进行条件查询  表的字段名称
+        wrapper.like(articleSearch.getArticleCondition().getTitle()!="",
+     "title",
+                articleSearch.getArticleCondition().getTitle());
+
+        // 大于等于
+        wrapper.ge(articleSearch.getArticleCondition().getStartDate()!=null, "created"
+                ,articleSearch.getArticleCondition().getStartDate() );
+
+        // 小于等于
+        wrapper.le(articleSearch.getArticleCondition().getEndDate()!=null,  "created"
+                ,articleSearch.getArticleCondition().getEndDate() );
+
+        Page<ArticleVO> page = new Page<>(articleSearch.getPageParams().getPage(),
+                articleSearch.getPageParams().getRows());
+        IPage<ArticleVO> aPage = articleMapper.articleSearch(page, wrapper);
+        Result result=new Result();
+        articleSearch.getPageParams().setTotal(aPage.getTotal());
+        result.getMap().put("articleVOs",aPage.getRecords());
+        result.getMap().put("pageParams",articleSearch.getPageParams());
         return result;
     }
 

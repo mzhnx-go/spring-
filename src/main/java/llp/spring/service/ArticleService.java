@@ -1,6 +1,7 @@
 package llp.spring.service;
 
 import llp.spring.entity.Article;
+import llp.spring.tools.ArticleSearch;
 import llp.spring.tools.PageParams;
 import llp.spring.tools.Result;
 import lombok.SneakyThrows;
@@ -19,4 +20,5 @@ public interface ArticleService {
     public Result getIndexData();
     public Result getIndexData(PageParams pageParams);
     public Result getAPageOfArticle(PageParams pageParams);
+    public Result articleSearch(ArticleSearch articleSearch);
 }

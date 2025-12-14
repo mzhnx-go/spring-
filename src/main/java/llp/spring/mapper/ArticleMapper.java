@@ -27,4 +27,7 @@ public interface ArticleMapper extends BaseMapper<Article>{
 
     @Select("SELECT * FROM t_article${ew.customSqlSegment}")
     IPage< Article> getAPageOfArticle(IPage< Article> page, @Param("ew")  QueryWrapper<ArticleVO> wrapper);
+
+    @Select("SELECT id,categories,title,created FROM t_article ${ew.customSqlSegment}")
+    IPage<ArticleVO> articleSearch(IPage<ArticleVO> page, @Param("ew") QueryWrapper<ArticleVO> wrapper);
 }
