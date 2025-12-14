@@ -34,6 +34,11 @@ const router = createRouter({
             path: '/article_comment/:articleId',
             name: 'articleAndComment',
             component: () => import('../views/ArticleAndComment.vue')
+        },
+        {
+            path: '/search',
+            name: 'search',
+            component: () => import('../views/Search.vue')
         }
     ]
 })

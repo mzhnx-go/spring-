@@ -1,5 +1,6 @@
 <script setup>
 import { ref, inject } from 'vue'
+import { Search } from '@element-plus/icons-vue'
 const size = ref(30)
 
 const toAdminMain = inject("toAdminMain")
@@ -15,6 +16,11 @@ const toAdminMain = inject("toAdminMain")
       <el-space :size="size">
         <a href="/login">登录</a>
         <a @click="toAdminMain">后台管理</a>
+        <router-link title="查询" :to="{path: '/search'}" style="text-decoration: none;">
+          <el-icon>
+            <Search class="searchIcon"/>
+          </el-icon>
+        </router-link>
       </el-space>
     </el-col>
     <el-col :span="3">
@@ -29,5 +35,15 @@ const toAdminMain = inject("toAdminMain")
   color: #fff;
   font-size: 22px;
 }
+
+.top {height: 80px;}
+a {
+  text-decoration: none;
+  cursor: pointer;
+}
+a:hover {color: #10D07A;}
+
+.searchIcon {color: black;}
+.searchIcon:hover{color: #10D07A;}
 
 </style>
