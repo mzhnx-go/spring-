@@ -6,5 +6,7 @@ export const useStore = defineStore('my', () => {
   const page = reactive({ "pageParams": null })
 
   const home = reactive({"page": 1})
-  return { articleId, page, home }
+
+  const user=reactive({"user": null})
+  return { articleId, page, home ,user}
 })

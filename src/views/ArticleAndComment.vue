@@ -1,12 +1,15 @@
 <script setup>
 import Top from "@/components/Top.vue";
 import { useRoute } from 'vue-router'
-import {inject, reactive, ref, computed, onMounted} from 'vue'
+import {inject, reactive, ref, computed, onMounted,watch} from 'vue'
+import { useStore } from '@/stores/my' // 导入store（路径和你之前的Top.vue一致）
+import { storeToRefs } from 'pinia' // 导入storeToRefs（pinia必备）
 import { ElMessageBox } from "element-plus";
 import Comment from "@/components/Comment.vue";
 const route = useRoute()
 const axios = inject('axios')
-
+const store = useStore()
+const user = computed(() => store.user.user)
 let articleAndComment=reactive({
     "article":{"content":""},
     "comments":[]
@@ -84,7 +87,6 @@ const load = () => {
         url: '/api/comment/getAPageCommentByArticleId?articleId='
         + route.params.articleId,
         data: pageParams,
-        timeout: pageParams,
         timeout: 3000000
     }).then((response) =>{
         if (response.data.success) {
@@ -95,7 +97,7 @@ const load = () => {
             } else if (comments == null || comments.length == 0)
             noMore.value = true
         } else
-            ElMessageBox.alert(articleAndComment.msg,'结果')
+            ElMessageBox.alert(response.data.msg,'结果')
         loading.value = false
     }).catch((error) => {
         ElMessageBox.alert("系统错误！",'结果')
@@ -103,6 +105,15 @@ const load = () => {
     })
 }
 
+const canComment = ref(false)
+watch(
+  () => user.value,
+  (newUser) => {
+    // 只要用户已登录就可以评论
+    canComment.value = !!newUser
+  },
+  { immediate: true }
+)
 </script>
 <template>
     <el-affix>
@@ -117,7 +128,7 @@ const load = () => {
         <el-row style="background-color: #f7f7f7;">
         <el-col :span="14" :offset="5">
          <ul v-infinite-scroll="load" :infinite-scroll-disabled="disabled" class="infinite-list">
-             <li class="infinite-list-item">
+             <li class="infinite-list-item" v-if="canComment">
                 <el-row>
                     <el-col>
                         <el-input v-model="commentContent" :autosize="{ minRows: 4}"
@@ -126,7 +137,7 @@ const load = () => {
                 </el-row>
                 <el-row justify="end">
                     <el-col :xs="8" :sm="6" :md="4" >
-                        <el-button @click="submit" type="primary" round style="margin-top: 5px;">提交评论</el-button>"
+                        <el-button @click="submit" type="primary" round style="margin-top: 5px;">提交评论</el-button>
                     </el-col>
                 </el-row>
              </li>
