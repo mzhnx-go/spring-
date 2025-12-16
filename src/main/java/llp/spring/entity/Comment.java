@@ -11,7 +11,7 @@ public class Comment {
     private String content;
     private String author;
     private LocalDate created;
-    private LocalDate updateTime;
+
 
     // Constructors
     public Comment() {}
@@ -21,7 +21,7 @@ public class Comment {
         this.content = content;
         this.author = author;
         this.created = LocalDate.now();
-        this.updateTime = LocalDate.now();
+
     }
 
     // Getters and Setters
@@ -65,11 +65,5 @@ public class Comment {
         this.created = created;
     }
 
-    public LocalDate getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(LocalDate updateTime) {
-        this.updateTime = updateTime;
-    }
+    
 }
