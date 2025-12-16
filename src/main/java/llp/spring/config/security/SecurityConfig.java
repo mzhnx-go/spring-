@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import javax.servlet.ServletException;
@@ -20,13 +21,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * Spring Security 核心配置
+ * 适配你的 Result 工具类（@NoArgsConstructor + 默认success=true）
+ */
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true) // 启用方法级别的权限认证
-public class SecurityConfig extends WebSecurityConfigurerAdapter {/////权限配置
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-@Autowired
-private MyUserDetailsService myUserDetailsService;
+    @Autowired
+    private MyUserDetailsService myUserDetailsService;
 
     @Autowired
     private MyAuthenticationFailureHandler myAuthenticationFailureHandler;
@@ -37,56 +42,92 @@ private MyUserDetailsService myUserDetailsService;
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * 自定义401未授权返回（适配你的Result类）
+     */
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            // 跨域头（必须）
+            response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+            response.setHeader("Access-Control-Allow-Credentials", "true");
+            // 401响应配置
+            response.setContentType("application/json;charset=utf-8");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+            // 适配你的Result类（使用带参构造器，覆盖默认success=true）
+            Result result = new Result(false, "请先登录（仅发表评论需要登录）");
+            response.getWriter().write(objectMapper.writeValueAsString(result));
+        };
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
-                // 1、自定义用户访问控制
-                .antMatchers("/images/**","/article/articleSearch","/article/getIndexDetail",
+        http
+                // 启用CORS
+                .cors().and()
+                // 权限控制
+                .authorizeRequests()
+                // 放行查询接口（未登录可看评论）
+                .antMatchers(
+                        "/images/**",
+                        "/article/articleSearch","/article/getIndexDetail",
                         "/article/getPageOfArticle","/article/getIndexData1",
                         "/article/getArticleAndfirstPageCommentByArticleId",
-                        "/article/selectById","/comment/getPageCommentByArticleId").permitAll()// 任意访问
+                        "/article/selectById",
+                        "/comment/getPageCommentByArticleId",
+                        "/comment/getAPageCommentByArticleId"
+                ).permitAll()
+                // 管理员接口
                 .antMatchers("/article/upload","/article/deleteById","/article/getPageOfArticleVO",
-                        "/article/publishArticle").hasRole("admin")// 管理员权限
-                .antMatchers("/comment/insert").hasRole("common")//注册会员权限
+                        "/article/publishArticle").hasRole("admin")
+                // 发表评论需要登录
+                .antMatchers("/comment/insert").hasRole("common")
                 .anyRequest().authenticated()
                 .and()
-                // 2、自定义用户登录控制
+                // 登录配置
                 .formLogin()
-                .failureHandler(myAuthenticationFailureHandler) // 权限验证失败的处理
-                .successHandler(myAuthenticationSuccessHandler) // 权限验证成功的处理
-                .permitAll() // 验证通过后可以访问任意
+                .failureHandler(myAuthenticationFailureHandler)
+                .successHandler(myAuthenticationSuccessHandler)
+                .permitAll()
                 .and()
-                .logout() // 注销用户
-                .logoutUrl("/logout") // 注销网址
-                .logoutSuccessHandler(new LogoutSuccessHandler() { // 注销用户成功时执行
+                // 注销配置（适配你的Result类）
+                .logout()
+                .logoutUrl("/logout")
+                .logoutSuccessHandler(new LogoutSuccessHandler() {
                     @Override
                     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response,
                                                 Authentication authentication) throws IOException, ServletException {
-                        request.getSession().removeAttribute("user");
+                        // 跨域头
+                        response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+                        response.setHeader("Access-Control-Allow-Credentials", "true");
+                        // 注销成功返回（使用带参构造器）
                         response.setContentType("application/json;charset=utf-8");
-                        response.getWriter().write(objectMapper.writeValueAsString(
-                                new Result(true, "登出成功")
-                        ));
+                        Result result = new Result(true, "登出成功");
+                        response.getWriter().write(objectMapper.writeValueAsString(result));
+
+                        request.getSession().removeAttribute("user");
                     }
                 })
                 .permitAll()
-                .and().csrf().disable() // 禁用网站csrf攻击防御
-        // 防止错误: Refused to display in a frame because it set 'X-Frame-Options' to 'DENY'
-        ;
+                // 异常处理
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(authenticationEntryPoint())
+                .and()
+                // 禁用CSRF
+                .csrf().disable();
+
         http.headers().frameOptions().disable();
     }
-
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(myUserDetailsService).passwordEncoder(passwordEncoder());
     }
 
-
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();// 密码加密策略
+        return new BCryptPasswordEncoder();
     }
 }
-

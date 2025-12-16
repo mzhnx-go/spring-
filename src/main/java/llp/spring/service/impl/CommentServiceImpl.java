@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import llp.spring.tools.PageParams;
 import llp.spring.tools.Result;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <p>
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
  * @since 2025-10-27
  */
 @Service
+@Transactional
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements ICommentService {
 
     private final CommentMapper commentMapper;
@@ -28,9 +30,18 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     }
 
     public Comment insert(Comment comment){
-        commentMapper.insert(comment);
-        return comment;
+        try {
+            int result = commentMapper.insert(comment);
+            if (result > 0) {
+                return comment;
+            } else {
+                throw new RuntimeException("评论插入失败");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("评论插入异常: " + e.getMessage(), e);
+        }
     }
+
 
     public Result getAPageCommentByArticleId(Integer articleId, PageParams pageParams) {
         QueryWrapper wrapper = new QueryWrapper<>();

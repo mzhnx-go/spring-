@@ -1,11 +1,14 @@
 package llp.spring.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.LocalDate;
 
 @TableName("t_comment")
 public class Comment {
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
     private Integer articleId;
     private String content;
