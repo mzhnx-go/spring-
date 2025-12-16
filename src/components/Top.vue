@@ -27,7 +27,9 @@ watch(
   { immediate: true } // 立即执行一次（替代原有的if初始化逻辑）
 )
 
-const toHome = inject("toHome")
+const toHome = inject('toHome', () => {
+  console.warn('toHome function not provided!')
+})
 const axios = inject('axios')
 
 function toExit(){
